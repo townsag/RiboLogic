@@ -44,7 +44,7 @@ def read_design_from_file(filename, **kwargs):
             # read variable element
             elif line.startswith('-variable'):
                 if not beginseq:
-                    print 'Must specify sequence before variable element'
+                    print('Must specify sequence before variable element')
                     sys.exit()
                 seq = f.readline().strip()
                 locations = [m.start() for m in re.finditer('(?=%s)' % 'o'*len(seq), seq_locks)]
@@ -52,7 +52,7 @@ def read_design_from_file(filename, **kwargs):
             # read objectives
             elif line.startswith('>'):
                 if not beginseq:
-                    print 'Must specify sequence before objectives'
+                    print('Must specify sequence before objectives')
                     sys.exit()
                 target = {}
                 target['type'] = line.strip('>\n')
@@ -92,7 +92,7 @@ def read_design_from_file(filename, **kwargs):
     while not done:
         new_targets = copy.deepcopy(targets)
         new_free_positions = set(free_positions)
-        for seq, pos in variables.items():
+        for seq, pos in list(variables.items()):
             l = len(seq)
             positions = [p for p in pos if set(range(p,p+l)).issubset(free_positions)]
             if 'rpos' in kwargs:
@@ -164,10 +164,10 @@ class Design(object):
     
     def get_default_mode(self):
         if any([target['type'] == 'aptamer' for target in self.targets]):
-            print 'Using Vienna to handle ligand-binding'
+            print('Using Vienna to handle ligand-binding')
             self.default_mode = 'vienna'
         elif any([len(target['inputs']) > 1 for target in self.targets if 'inputs' in target]):
-            print 'Using NUPACK to handle multiple RNA inputs'
+            print('Using NUPACK to handle multiple RNA inputs')
             self.default_mode = 'nupack'
         else:
             self.default_mode = False
@@ -175,15 +175,15 @@ class Design(object):
         return self.default_mode
 
     def print_info(self):        
-        print self.seq_locks
+        print(self.seq_locks)
         fold_sequences = self.get_fold_sequences(self.begin_seq)
         for i, target in enumerate(self.targets):
-            print '-> state %d' % i
-            print fold_sequences[i]
-            print target['secstruct']
-            print target['constrained']
+            print('-> state %d' % i)
+            print(fold_sequences[i])
+            print(target['secstruct'])
+            print(target['constrained'])
             if 'fold_constraint' in target:
-                print target['fold_constraint']
+                print(target['fold_constraint'])
 
 class DesignSequence(object):
 
@@ -227,7 +227,7 @@ class DesignSequence(object):
                 self.mispaired_positions.update(set([j - offset for j in bp_result[1] if j >= offset]))
             if target['type'] == 'aptamer':
                 energy_compare[target['type']] = energies[i]
-                ligand = target['inputs'].keys()[0]
+                ligand = list(target['inputs'].keys())[0]
                 energy_compare['ligand'] = self.design.inputs[ligand]['kD'], target['inputs'][ligand]
             elif target['type'] == 'single':
                 energy_compare[target['type']] = energies[i]
@@ -255,7 +255,7 @@ class DesignSequence(object):
         for i, target in enumerate(self.design.targets):
             if self.mode == 'vienna':
                 if target['type'] == 'aptamer':
-                    ligand = self.design.inputs[target['inputs'].keys()[0]]
+                    ligand = self.design.inputs[list(target['inputs'].keys())[0]]
                     result[i] = p.apply_async(fold_utils.vienna_fold,
                                               args=(self.fold_sequences[i],
                                                     ligand['fold_constraint'],
@@ -286,13 +286,13 @@ class DesignSequence(object):
         return self.score_secstructs(self.sequence, self.native, self.energies) == 0 and self.oligo_conc == 1
 
     def print_(self):
-        print self.sequence
-        print 'bp distance: %d' % self.bp_distance
-        print 'design score: %f' % self.design_score
-        print 'conc: %s' % self.oligo_conc
+        print(self.sequence)
+        print('bp distance: %d' % self.bp_distance)
+        print('design score: %f' % self.design_score)
+        print('conc: %s' % self.oligo_conc)
         for j in range(self.n_targets):
-            print self.native[j]
-        print ''
+            print(self.native[j])
+        print('')
 
 class SwitchDesigner(object):
 
@@ -336,7 +336,7 @@ class SwitchDesigner(object):
         self.current_design = DesignSequence(self.design, sequence, self.mode, self.oligo_conc)
         self.update_best()
         if self.print_:
-            print 'reset %s' % sequence
+            print('reset %s' % sequence)
 
     def update_current(self, design):
         """
@@ -404,7 +404,7 @@ class SwitchDesigner(object):
                     continue
                 self.update_current(mut_design)
                 if self.print_:
-                    print i
+                    print(i)
                     self.current_design.print_()
                         #print self.get_fold_sequence(self.sequence, self.targets[j])
             
@@ -415,7 +415,7 @@ class SwitchDesigner(object):
                     self.update_best()
 
             if self.best_design.bp_distance == 0 and self.oligo_conc == 1.0:
-                print '-> Reached solution in %d iterations.' % i
+                print('-> Reached solution in %d iterations.' % i)
                 self.best_design.print_()
                 if not continue_:
                     return i

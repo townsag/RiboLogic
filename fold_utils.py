@@ -30,7 +30,7 @@ def vienna_fold(sequence, constraint=None, bpp=False):
         options += ' --noPS'
     if '&' in sequence:
         if sequence.count('&') > 1:
-            print 'Cannot handle more than 2 strands with Vienna - try the nupack option'
+            print('Cannot handle more than 2 strands with Vienna - try the nupack option')
             sys.exit()
         command = 'RNAcofold'
     else:
@@ -69,7 +69,7 @@ def get_orderings(n):
     # loop over number of strands
     for i in range(1,n):
         # loop over each possible combination
-        for order in list(itertools.combinations(range(1,n), i)):
+        for order in list(itertools.combinations(list(range(1,n)), i)):
             # add last strand at each possible position
             for j in range(1,i+1):
                 order_list = list(order)
@@ -98,8 +98,8 @@ def nupack_fold_single(sequence, bpp=False):
     p = subprocess.Popen([os.path.join(settings.NUPACK_DIR,'mfe')] + options + [filename], stdout=subprocess.PIPE, stdin=subprocess.PIPE, stderr=subprocess.PIPE)
     stdout, stderr = p.communicate()
     if p.returncode != 0:
-        print stdout
-        print stderr
+        print(stdout)
+        print(stderr)
         raise ValueError('mfe command failed for %s' % rand_string)
     result = ['.'*len(sequence), 0, [1]]
     with open('%s.mfe' % filename) as f:
@@ -116,8 +116,8 @@ def nupack_fold_single(sequence, bpp=False):
         stdout, stderr = p.communicate()
         bpp_matrix = []
         if p.returncode != 0:
-            print stdout
-            print stderr
+            print(stdout)
+            print(stderr)
             raise ValueError('mfe command failed for %s' % rand_string)
         with open('%s.ppairs' % filename) as f:
             line = f.readline()
@@ -159,14 +159,14 @@ def nupack_fold_multi(sequence, oligo_conc=1, bpp=False):
     p = subprocess.Popen([os.path.join(settings.NUPACK_DIR,'complexes')] + options + [filename], stdout=subprocess.PIPE, stdin=subprocess.PIPE, stderr=subprocess.PIPE)
     stdout, stderr = p.communicate()
     if p.returncode != 0:
-        print stdout
-        print stderr
+        print(stdout)
+        print(stderr)
         raise ValueError('complexes command failed for %s' % rand_string)
     p = subprocess.Popen([os.path.join(settings.NUPACK_DIR,'concentrations'), '-ordered', filename], stdout=subprocess.PIPE, stdin=subprocess.PIPE, stderr=subprocess.PIPE)
     stdout, stderr = p.communicate()
     if p.returncode != 0:
-        print stdout
-        print stderr
+        print(stdout)
+        print(stderr)
         raise ValueError('concentrations command failed for %s' % rand_string)
     # get mfe
     complex = False
@@ -179,8 +179,8 @@ def nupack_fold_multi(sequence, oligo_conc=1, bpp=False):
     if not complex:
         os.system('rm %s*' % filename)
         if bpp:
-            return ['.'*len(sequence), 0, range(1,len(split)+1), []]
-        return ['.'*len(sequence), 0, range(1,len(split)+1)]
+            return ['.'*len(sequence), 0, list(range(1,len(split)+1)), []]
+        return ['.'*len(sequence), 0, list(range(1,len(split)+1))]
     # get strand ordering
     with open('%s.ocx-key' % filename) as f_key:
         for line in f_key:

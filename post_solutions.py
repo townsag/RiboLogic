@@ -25,11 +25,11 @@ def post_solutions(puzzleid, filename):
             continue
         result = post_solution(puzzleid, "RiboLogic solution %s" % i, sol.split()[0])
         if result == "successfully submitted":
-            print "success"
+            print("success")
             i += 1
         else:
-            print "error: %s" % result
-    print "%d solutions successfully submitted" % i
+            print("error: %s" % result)
+    print("%d solutions successfully submitted" % i)
     return
 
 def post_solution(puzzleid, title, sequence):
@@ -60,7 +60,7 @@ def post_solution(puzzleid, title, sequence):
         r = s.post(loginurl, data=login, headers=header)
         r = s.post(posturl, data=solution, headers=header)
         j = simplejson.loads(r.text)
-        print "--> sequence: %s" % sequence
+        print("--> sequence: %s" % sequence)
         if "error" in j['data']:
             return j['data']['error']
         else:

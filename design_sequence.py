@@ -31,12 +31,12 @@ def optimize_n(design, niter, ncool, n, maxattempts=1, **kwargs):
                 attempts = 0
         else:
             #niter += 500
-            print 'best distance: %s' % design.best_design.bp_distance
-            print 'final conc: %s' % design.oligo_conc
+            print('best distance: %s' % design.best_design.bp_distance)
+            print('final conc: %s' % design.oligo_conc)
             attempts += 1
             if attempts == maxattempts:
                 break
-        print '%s sequence(s) calculated' % i
+        print('%s sequence(s) calculated' % i)
     return [solutions, scores]
 
 def optimize_timed(design, niter, ncool, time, **kwargs):
@@ -62,15 +62,15 @@ def optimize_timed(design, niter, ncool, time, **kwargs):
                 niters.append(n)
                 i += 1
             else:
-                print 'best distance: %s' % design.best_design.bp_distance
-                print 'final conc: %s' % design.oligo_conc
-            print '%s sequence(s) calculated' % i
-    except Exception, exc:
-        print exc
-        print '%s sequence(s) calculated in %d seconds' % (i, time)
-        print 'average iterations: %d' % (float(sum(niters))/len(niters))
+                print('best distance: %s' % design.best_design.bp_distance)
+                print('final conc: %s' % design.oligo_conc)
+            print('%s sequence(s) calculated' % i)
+    except Exception as exc:
+        print(exc)
+        print('%s sequence(s) calculated in %d seconds' % (i, time))
+        print('average iterations: %d' % (float(sum(niters))/len(niters)))
         for i in range(len(solutions)):
-            print '\t%s %d %d' % (solutions[i], scores[i], niters[i])
+            print('\t%s %d %d' % (solutions[i], scores[i], niters[i]))
     return [solutions, scores]
 
 def main():
@@ -99,7 +99,7 @@ def main():
         fout = os.path.join(os.path.splitext(args.filename)[0] + '_' + designer.mode + '.out')
     else:
         fout = False
-    print 'Designing using %d cores' % mp.cpu_count()
+    print('Designing using %d cores' % mp.cpu_count())
     
     # find solutions
     if args.time:

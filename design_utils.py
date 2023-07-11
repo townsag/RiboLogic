@@ -22,7 +22,7 @@ def bp_distance(secstruct1, secstruct2, locks, threshold=0):
 
     # ensure that secondary structures are the same length
     if(len(secstruct1) != len(secstruct2)):
-        print 'SS1 (%s) and SS2 (%s) lengths don\'t match' % (len(secstruct1), len(secstruct2))
+        print('SS1 (%s) and SS2 (%s) lengths don\'t match' % (len(secstruct1), len(secstruct2)))
         sys.exit(0)
 
     if not threshold:
@@ -179,7 +179,7 @@ def get_pairmap_from_secstruct(secstruct):
     pk_pair_stack = []
     pk_end_stack = []
     pairs_array = []
-    i_range = range(0,len(secstruct))
+    i_range = list(range(0,len(secstruct)))
 
     # initialize all values to -1, meaning no pair
     for ii in i_range:

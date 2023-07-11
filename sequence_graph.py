@@ -17,7 +17,7 @@ class SequenceGraph(object):
 
         # set class variables
         self.design = design
-        self.inputs = {key: value for key, value in design.inputs.items() if value['type'] == 'RNA'}
+        self.inputs = {key: value for key, value in list(design.inputs.items()) if value['type'] == 'RNA'}
         self.targets = design.targets
         self.seq_locks = self._get_full_seqlocks(design.seq_locks)
         self.design_seq = design.begin_seq
@@ -37,7 +37,7 @@ class SequenceGraph(object):
         #print self.dep_graph.nodes(data=True)
 
         # update sequence
-        print self.design_seq
+        print(self.design_seq)
         self.reset_sequence(self.design_seq)
 
         # draw if option specified
@@ -81,7 +81,7 @@ class SequenceGraph(object):
         self.oligo_pos = []
         self.oligo_len = []
         self.oligo_len_sum = 0
-        inputs = [input['sequence'] for input in self.inputs.values()]
+        inputs = [input['sequence'] for input in list(self.inputs.values())]
         current = 0
         for input in inputs:
             position = self.find_unconstrained_section(len(input), current) 
@@ -151,7 +151,7 @@ class SequenceGraph(object):
 
         # create graph
         graph = nx.Graph()
-        graph.add_nodes_from(range(self.N), bases=['A','U','G','C'])
+        graph.add_nodes_from(list(range(self.N)), bases=['A','U','G','C'])
         for target in self.targets:
             if 'inputs' in target:
                 target['full_secstruct'] = self._get_full_secstruct(target['secstruct'], target['inputs'])

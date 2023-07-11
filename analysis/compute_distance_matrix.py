@@ -77,7 +77,7 @@ def main():
 
   p = mp.Pool()
   # distance metric is determined based on column name
-  result = map(partial(get_distances, function=bp_distance if 'secstruct' in args.column else distance), [values[0:i+1] for i in range(n)])
+  result = list(map(partial(get_distances, function=bp_distance if 'secstruct' in args.column else distance), [values[0:i+1] for i in range(n)]))
   result = np.array([np.pad(row, (0, n - len(row)), 'constant')
                      for row in result])
   np.savetxt('%s.%s.dist' % (os.path.splitext(args.filename)[0], args.column), result, '%d',
