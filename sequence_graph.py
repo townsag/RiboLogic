@@ -180,7 +180,7 @@ class SequenceGraph(object):
         """
         recursively set sequence constraints for position i
         """
-        self.dep_graph.node[i]['bases'] = list(set(self.dep_graph.node[i]['bases']) & set(bases))
+        self.dep_graph.nodes[i]['bases'] = list(set(self.dep_graph.nodes[i]['bases']) & set(bases))
         updated.append(i)
         for pos in nx.all_neighbors(self.dep_graph, i):
             if pos not in updated:
@@ -274,11 +274,11 @@ class SequenceGraph(object):
         # shift complement sequence
         if shift:
             if right:
-                mut_array[self.oligo_pos[roligo][0]] = design_utils.get_random_base(self.dep_graph.node[self.oligo_pos[roligo][0]]['bases'])
+                mut_array[self.oligo_pos[roligo][0]] = design_utils.get_random_base(self.dep_graph.nodes[self.oligo_pos[roligo][0]]['bases'])
                 self.oligo_pos[roligo] = [x+1 for x in self.oligo_pos[roligo]] 
             else:
                 self.oligo_pos[roligo] = [x-1 for x in self.oligo_pos[roligo]] 
-                mut_array[self.oligo_pos[roligo][1]] = design_utils.get_random_base(self.dep_graph.node[self.oligo_pos[roligo][1]]['bases'])
+                mut_array[self.oligo_pos[roligo][1]] = design_utils.get_random_base(self.dep_graph.nodes[self.oligo_pos[roligo][1]]['bases'])
             seq = ''.join(mut_array)
             start, end = self.oligo_pos[roligo]
             lo, hi = self.oligo_len[roligo]
@@ -301,10 +301,10 @@ class SequenceGraph(object):
                 self.oligo_pos[roligo][1] -= 1
                 self.oligo_len[roligo][1] -= 1
                 mutate_pos = self.oligo_pos[roligo][right]
-                mut_array[mutate_pos] = design_utils.get_random_base(self.dep_graph.node[mutate_pos]['bases'])
+                mut_array[mutate_pos] = design_utils.get_random_base(self.dep_graph.nodes[mutate_pos]['bases'])
             else:
                 mutate_pos = self.oligo_pos[roligo][right]
-                mut_array[mutate_pos] = design_utils.get_random_base(self.dep_graph.node[mutate_pos]['bases'])
+                mut_array[mutate_pos] = design_utils.get_random_base(self.dep_graph.nodes[mutate_pos]['bases'])
                 self.oligo_pos[roligo][0] += 1
                 self.oligo_len[roligo][0] += 1 
         self.oligo_len_sum = sum([x[1]-x[0] for x in self.oligo_len])
@@ -323,7 +323,7 @@ class SequenceGraph(object):
             #    rindex = self.index_array[0][int(random.random() * len(self.index_array[0]))]
             #else:
             #    rindex = self.index_array[1][int(random.random() * len(self.index_array[1]))]
-            rbase = design_utils.get_random_base(self.dep_graph.node[rindex]['bases'])
+            rbase = design_utils.get_random_base(self.dep_graph.nodes[rindex]['bases'])
             mut_array[rindex] = rbase
             if self.autocomplement:
                 self.update_neighbors(rindex, mut_array, [])
@@ -337,7 +337,7 @@ class SequenceGraph(object):
         """
         for pos in nx.all_neighbors(self.dep_graph, node):
             if pos not in updated:
-                complement = design_utils.rc(mut_array[node], possible_bases=self.dep_graph.node[pos]['bases'])
+                complement = design_utils.rc(mut_array[node], possible_bases=self.dep_graph.nodes[pos]['bases'])
                 mut_array[pos] = complement
                 updated.append(pos)
                 self.update_neighbors(pos, mut_array, updated)

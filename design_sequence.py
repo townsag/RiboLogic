@@ -75,6 +75,7 @@ def optimize_timed(design, niter, ncool, time, **kwargs):
 
 def main():
     # parse arguments
+    # argument parser is an object that reads command line flags/arguments
     p = argparse.ArgumentParser()
     p.add_argument('filename', help='name of design filename', type=str)
     p.add_argument('-n', '--nsol', help='number of solutions', type=int, default=1)
@@ -94,7 +95,11 @@ def main():
     design = switch_designer.read_design_from_file(args.filename)
     if design.default_mode:
         args.mode = design.default_mode
-    designer =  switch_designer.SwitchDesigner(os.path.basename(args.filename).split('.')[0], design, **vars(args))
+    designer = switch_designer.SwitchDesigner(os.path.basename(args.filename).split('.')[0], design, **vars(args))
+    # The vars() function in Python returns the __dict__ attribute of an object as a dictionary. It provides a way to
+    # access the attributes and their values of an object using dictionary-like syntax.
+    #  The double asterisk ** is the syntax for dictionary unpacking in Python. It allows you to pass
+    #  the key-value pairs of a dictionary as keyword arguments to a function or method.
     if not args.nowrite:
         fout = os.path.join(os.path.splitext(args.filename)[0] + '_' + designer.mode + '.out')
     else:

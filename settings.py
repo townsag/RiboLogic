@@ -7,6 +7,5 @@ base_dir = '/'.join(spl[:-1])
 RESOURCE_DIR = os.path.join(base_dir, 'resources')
 STRATEGY_DIR = os.path.join(base_dir, 'strategies')
 TEMP_DIR = os.environ['TMPDIR'] if 'TMPDIR' in os.environ else os.path.join(base_dir, 'tmp')
-VIENNA_DIR = '%s/bin' % os.environ['VIENNAHOME']
-NUPACK_DIR = '%s/bin' % os.environ['NUPACKHOME']
-
+# VIENNA_DIR = '%s/bin' % os.environ['VIENNAHOME']
+# NUPACK_DIR = '%s/bin' % os.environ['NUPACKHOME']
