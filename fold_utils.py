@@ -320,7 +320,7 @@ def nupack_package_fold_multi(concatenated_sequences, oligo_conc=1, bpp=False):
     # its input position ABC... etc
     strands = []
     for name, seq in list(zip(string.ascii_uppercase, concatenated_sequences.split('&'))):
-        strands.append(Strand(sequence=seq, name=name))
+        strands.append(Strand(seq, name=name))
 
     # make a complex object for each ordering from get orderings
     orderings = get_orderings(len(strands))
