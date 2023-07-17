@@ -102,9 +102,9 @@ def nupack_fold(sequence, oligo_conc=1, bpp=False):
     finds most prevalent structure using nupack partition function
     """
     if '&' in sequence:
-        return nupack_fold_multi(sequence, oligo_conc, bpp)
+        return nupack_package_fold_multi(sequence, oligo_conc, bpp)
     else:
-        return nupack_fold_single(sequence, bpp)
+        return nupack_package_fold_single(sequence, bpp)
 
 
 def nupack_fold_single(sequence, bpp=False):
@@ -193,7 +193,7 @@ def nupack_fold_multi(sequence, oligo_conc=1, bpp=False):
         f.write('1\n')
 
     # write the orderings to a different temp input file
-    # each line has a list of integers specifying th order of strands in the complex
+    # each line has a list of integers specifying the order of strands in the complex
     # this file specifies a list of complexes to be considered
     orderings = get_orderings(len(split))
     with open('%s.list' % filename, 'w') as f:
@@ -247,7 +247,7 @@ def nupack_fold_multi(sequence, oligo_conc=1, bpp=False):
     with open('%s.eq' % filename) as f_eq:
         for line in f_eq:
             if not line.startswith('%'):
-                # get a list: [the strands in the complex] + [free energy] + [the concentration of the species in molar]
+                # get a list: [the strands in the complex] + [free energy] + [the concentration of the complex species in molar]
                 # (default) Output is sorted by the concentration of each complex (default)
                 # so the first line of the file should contain the complex with the highest concentration
                 complex = line.strip().split()
@@ -313,17 +313,88 @@ def nupack_package_fold_multi(concatenated_sequences, oligo_conc=1, bpp=False):
     # todo: consider complexes with duplicate elements (complexes without duplicates were not considered in original function)
     # todo: check understanding: make sure that complex analysis jobs will make all possible complexes using circular ordering
     # todo: understand the use of oligo_conc
-    strands =[]
-    for name, seq in list(zip(string.ascii_uppercase,concatenated_sequences.split('&'))):
+
+    # todo: first go: use get orderings and complex - concentrations analysis job to directly recreate nuoack 3.0 function
+
+    # make a list of strands with each strand having a sequence from the input sequence and a name corresponding to
+    # its input position ABC... etc
+    strands = []
+    for name, seq in list(zip(string.ascii_uppercase, concatenated_sequences.split('&'))):
         strands.append(Strand(sequence=seq, name=name))
 
-    # use complex ensemble if the concentration is not provided and use test tube ensemble if it is provided
+    # make a complex object for each ordering from get orderings
+    orderings = get_orderings(len(strands))
 
+    complexes = []
+    for ordering in orderings:
+        # ex: c2 = Complex([A, B, B, C], name='ABBC')
+        # i-1 because the ordering function is made for old version of nupack which is 1 indexed
+        temp_complex = Complex([strands[i - 1] for i in ordering],
+                               name=''.join([strands[i - 1].name for i in ordering]))
+        complexes.append(temp_complex)
 
-    if oligo_conc == 1:
+    # single_strands = [[i] for i in strands]
+    # make a complex set containing all the lists of complexes using the include keyword
+    # todo: add exclude keyword to remove complexes made up of individual strands
+    complex_set_1 = ComplexSet(strands=strands, complexes=SetSpec(include=complexes))
+    # ,exclude=single_strands
 
+    # calculate the partition function and mfe for each complex in the complex set
+    model1 = Model(material='rna')
 
+    if isinstance(oligo_conc, list):
+        assert len(strands) == len(oligo_conc) + 1, \
+            'length of concentrations must be one less than number of strands'
+        # make the concentrations equal to the value at that index in the list except for the last one which is 1e-9
+        # key is the strand object, vlaue is the concentration in M
+        strand_to_concentrations_dict = {}
+        for i, strand in enumerate(strands[:-1]):
+            strand_to_concentrations_dict[strand] = oligo_conc[i]
+        strand_to_concentrations_dict[strands[-1]] = 1e-5
+    else:
+        # make the concentrations all one except for the last one, make it 1e-9
+        strand_to_concentrations_dict = {}
+        for strand in strands[:-1]:
+            strand_to_concentrations_dict[strand] = 1
+        strand_to_concentrations_dict[strands[-1]] = 1e-5
 
+    tube1 = Tube(strands=strand_to_concentrations_dict, complexes=SetSpec(include=complexes), name='tube1')
+    tube_results = tube_analysis(tubes=[tube1], model=model1, compute=['mfe', 'pairs'])
+
+    # find the complex object associated with the highest concentration that is not made up of a single strand
+    # complex_highest_concentration = max(tube_results[tube1].complex_concentrations, key=tube_results[tube1].complex_concentrations.get)
+
+    max = 0
+    complex_highest_concentration = None
+    for complex_object in iter(tube_results[tube1].complex_concentrations):
+        if complex_object.nstrands() > 1 and tube_results[tube1].complex_concentrations[complex_object] > max:
+            max = tube_results[tube1].complex_concentrations[complex_object]
+            complex_highest_concentration = complex_object
+
+    highest_concentration = tube_results[tube1].complex_concentrations[complex_highest_concentration]
+    secondary_structure = str(tube_results[complex_highest_concentration].mfe[0].structure)
+    mfe_of_secondary_structure = tube_results[complex_highest_concentration].mfe[0].energy
+    pairs_array = tube_results[complex_highest_concentration].pairs.array
+    # at this point we have the complex with the highest concentaration, the mfe structure, the free energy, and the
+    # concentration of that complex
+    # get a list of the strand names that are in the highest concentration complex
+    temp_strands_tuple = complex_highest_concentration.strands
+    ordered_strands_indexes = []
+    # original nupack 3.0 was 1 indexed so ordered strand indexes has to be 1 indexed to
+    # will go back and zero index things in the future, first need to get basics working
+    for strand_obj in temp_strands_tuple:
+        ordered_strands_indexes.append(strands.index(strand_obj) + 1)
+    for single_strand in strands:
+        if single_strand not in temp_strands_tuple:
+            print('this strand is not in the tuple')
+            secondary_structure += '&' + '.' * single_strand.__len__()
+            ordered_strands_indexes.append(strands.index(single_strand) + 1)
+
+    if bpp:
+        return [secondary_structure.replace('+', '&'), float(mfe_of_secondary_structure),
+                ordered_strands_indexes, pairs_array]
+    else:
+        return [secondary_structure.replace('+', '&'), float(mfe_of_secondary_structure), ordered_strands_indexes]
 
 
 def nupack_read_bpp(f, n):

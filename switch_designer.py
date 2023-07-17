@@ -157,6 +157,7 @@ class Design(object):
         fold_sequences = []
         for target in self.targets:
             if target['type'] == 'oligos':
+                # todo: understand this line
                 fold_sequences.append('&'.join([self.inputs[x]['sequence'] for x in target['inputs'] if self.inputs[x]['type'] == 'RNA' ] + [sequence]))
             else:
                 fold_sequences.append(sequence)
@@ -391,6 +392,7 @@ class SwitchDesigner(object):
 
         # loop as long as bp distance too large or design score too small
         for i in range(n_iterations):
+            print(f"on iteration: {i}")
             #random.shuffle(index_array)
             
             # pick random nucleotide in sequence

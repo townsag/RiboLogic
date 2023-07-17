@@ -5,18 +5,19 @@ import argparse
 import signal
 import multiprocessing as mp
 
-def optimize_n(design, niter, ncool, n, maxattempts=1, **kwargs):
+def optimize_n(designer, niter, ncool, n, maxattempts=1, **kwargs):
     # run design n times
     solutions = []
     scores = []
     i = 0 
     attempts = 0
+    print("starting sequence attempts")
     while i < n:
-        design.reset_sequence()
+        designer.reset_sequence()
         passkwargs = {key:kwargs[key] for key in ['greedy', 'start_oligo_conc', 'continue_']}
-        nfin = design.optimize_sequence(niter, ncool, **passkwargs)
-        if design.check_current():
-            sol = design.get_solution()
+        nfin = designer.optimize_sequence(niter, ncool, **passkwargs)
+        if designer.check_current():
+            sol = designer.get_solution()
             if sol.sequence not in solutions:
                 solutions.append(sol.sequence)
                 scores.append(sol.design_score)
@@ -31,8 +32,8 @@ def optimize_n(design, niter, ncool, n, maxattempts=1, **kwargs):
                 attempts = 0
         else:
             #niter += 500
-            print('best distance: %s' % design.best_design.bp_distance)
-            print('final conc: %s' % design.oligo_conc)
+            print('best distance: %s' % designer.best_design.bp_distance)
+            print('final conc: %s' % designer.oligo_conc)
             attempts += 1
             if attempts == maxattempts:
                 break
@@ -100,6 +101,7 @@ def main():
     # access the attributes and their values of an object using dictionary-like syntax.
     #  The double asterisk ** is the syntax for dictionary unpacking in Python. It allows you to pass
     #  the key-value pairs of a dictionary as keyword arguments to a function or method.
+
     if not args.nowrite:
         fout = os.path.join(os.path.splitext(args.filename)[0] + '_' + designer.mode + '.out')
     else:
