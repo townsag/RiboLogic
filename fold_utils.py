@@ -374,7 +374,7 @@ def nupack_package_fold_multi(concatenated_sequences, oligo_conc=1, bpp=False):
     highest_concentration = tube_results[tube1].complex_concentrations[complex_highest_concentration]
     secondary_structure = str(tube_results[complex_highest_concentration].mfe[0].structure)
     mfe_of_secondary_structure = tube_results[complex_highest_concentration].mfe[0].energy
-    pairs_array = tube_results[complex_highest_concentration].pairs.array
+    pairs_array = tube_results[complex_highest_concentration].pairs.to_array()
     # at this point we have the complex with the highest concentaration, the mfe structure, the free energy, and the
     # concentration of that complex
     # get a list of the strand names that are in the highest concentration complex
