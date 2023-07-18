@@ -245,44 +245,36 @@ class DesignSequence(object):
         return distance
 
     def update_sequence(self, sequence, oligo_conc=1):
+        #print("in update sequence in Design Sequence")
         self.sequence = sequence
         self.native = [] 
         self.energies = []
         self.fold_sequences = self.design.get_fold_sequences(sequence)
         self.bpps = []
         self.oligo_conc = oligo_conc
+        
         result = [None] * self.n_targets
-        p = multiprocessing.Pool(self.n_targets)
         for i, target in enumerate(self.design.targets):
             if self.mode == 'vienna':
                 if target['type'] == 'aptamer':
                     ligand = self.design.inputs[list(target['inputs'].keys())[0]]
-                    result[i] = p.apply_async(fold_utils.vienna_fold,
-                                              args=(self.fold_sequences[i],
-                                                    ligand['fold_constraint'],
-                                                    True))
+                    result[i] = fold_utils.vienna_fold(self.fold_sequences[i], ligand['fold_constraint'], True)
                 else:
-                    result[i] = p.apply_async(fold_utils.vienna_fold,
-                                              args=(self.fold_sequences[i],
-                                                    None, True))
+                    result[i] = fold_utils.vienna_fold(self.fold_sequences[i], None, True)
             if self.mode == 'nupack':
                 if 'inputs' in target:
                     concentrations = [target['inputs'][input]*oligo_conc for input in sorted(target['inputs'])]
                 else:
                     concentrations = 1
-                result[i] = p.apply_async(fold_utils.nupack_fold,
-                                          args=(self.fold_sequences[i],
-                                                concentrations, True))
-        p.close()
-        p.join()
-        result = [x.get() for x in result]
+                result[i] = fold_utils.nupack_fold(self.fold_sequences[i], concentrations, True)
+        
         self.native = [[x[0], x[2]] if len(x) == 4 else x[0] for x in result]
         self.energies = [x[1] for x in result]
         self.bpps = [x[-1] for x in result]
         self.bp_distance = self.score_secstructs(sequence, self.native, self.energies)
         self.design_score = max(self.get_design_score(),0)
         return
-    
+ 
     def is_solution(self):
         return self.score_secstructs(self.sequence, self.native, self.energies) == 0 and self.oligo_conc == 1
 
@@ -308,6 +300,7 @@ class SwitchDesigner(object):
         self.inputs = kwargs.get('inputs', {})
 
         # process input data
+        print("instantiating sequence graph object inside switch designer object")
         self.sequence_graph = sequence_graph.SequenceGraph(self.design, add_rcs=add_rcs)
         self.target_oligo_conc = 1e-7
 
@@ -392,7 +385,8 @@ class SwitchDesigner(object):
 
         # loop as long as bp distance too large or design score too small
         for i in range(n_iterations):
-            print(f"on iteration: {i}")
+            if i % 25 == 0:
+                print(f"on iteration: {i}")
             #random.shuffle(index_array)
             
             # pick random nucleotide in sequence

@@ -93,9 +93,11 @@ def main():
     args = p.parse_args()
 
     # read design
+    print("reading input file")
     design = switch_designer.read_design_from_file(args.filename)
     if design.default_mode:
         args.mode = design.default_mode
+    print("instantiating switch design object")
     designer = switch_designer.SwitchDesigner(os.path.basename(args.filename).split('.')[0], design, **vars(args))
     # The vars() function in Python returns the __dict__ attribute of an object as a dictionary. It provides a way to
     # access the attributes and their values of an object using dictionary-like syntax.

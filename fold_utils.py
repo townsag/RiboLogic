@@ -155,8 +155,9 @@ def nupack_fold_single(sequence, bpp=False):
 
 def nupack_package_fold_single(sequence, bpp=False):
     # use nupack package fold utilites to find the minimum free energy, secondary structure, and bpp
+    #print(f"fold single called with input: {sequence}\n bpp: {bpp}\n\n")
     model = Model(material='rna')
-    mfe_result = mfe(strands=sequence, model=model)
+    mfe_result = mfe(sequence, model=model)
     # https://docs.nupack.org/definitions/#mfe-proxy-structure
     # uses mfe function from nupack utilites to find minimum free energy proxy structure:
     #  - defined as the secondary structure containing the MFE stacking state within its subensemble
@@ -170,7 +171,8 @@ def nupack_package_fold_single(sequence, bpp=False):
         # https://docs.nupack.org/definitions/#equilibrium-base-pairing-probabilities
         # use nupack pairs utilities to calculate the base pair probability matrix for the ensemble of sequences. this
         # is the probability that base pairs a and b will form at equilibrium
-        result.append(probability_matrix.array)
+        result.append(probability_matrix.to_array())
+    #print("fold single about to return: ", result)
     return result
 
 
@@ -318,6 +320,7 @@ def nupack_package_fold_multi(concatenated_sequences, oligo_conc=1, bpp=False):
 
     # make a list of strands with each strand having a sequence from the input sequence and a name corresponding to
     # its input position ABC... etc
+    #print(f"nupack fold multi called with these arguments: \nsequences: {concatenated_sequences} \noligo conc: {oligo_conc} \nbpp: {bpp}\n\n")
     strands = []
     for name, seq in list(zip(string.ascii_uppercase, concatenated_sequences.split('&'))):
         strands.append(Strand(seq, name=name))
@@ -386,14 +389,16 @@ def nupack_package_fold_multi(concatenated_sequences, oligo_conc=1, bpp=False):
         ordered_strands_indexes.append(strands.index(strand_obj) + 1)
     for single_strand in strands:
         if single_strand not in temp_strands_tuple:
-            print('this strand is not in the tuple')
+            #print('this strand is not in the tuple')
             secondary_structure += '&' + '.' * single_strand.__len__()
             ordered_strands_indexes.append(strands.index(single_strand) + 1)
 
     if bpp:
+        #print("nupack multi about to print: " , [secondary_structure.replace('+', '&'), float(mfe_of_secondary_structure),ordered_strands_indexes, pairs_array])
         return [secondary_structure.replace('+', '&'), float(mfe_of_secondary_structure),
                 ordered_strands_indexes, pairs_array]
     else:
+        #print("nupack multi about to print: " + [secondary_structure.replace('+', '&'), float(mfe_of_secondary_structure), ordered_strands_indexes])
         return [secondary_structure.replace('+', '&'), float(mfe_of_secondary_structure), ordered_strands_indexes]
 
 
