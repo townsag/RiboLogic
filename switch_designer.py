@@ -251,31 +251,48 @@ class DesignSequence(object):
         self.fold_sequences = self.design.get_fold_sequences(sequence)
         self.bpps = []
         self.oligo_conc = oligo_conc
+        # todo: implement asynchronus threaded call to fold utils
+        # result = [None] * self.n_targets
+        # p = multiprocessing.Pool(self.n_targets)
+        # for i, target in enumerate(self.design.targets):
+        #     if self.mode == 'vienna':
+        #         if target['type'] == 'aptamer':
+        #             ligand = self.design.inputs[list(target['inputs'].keys())[0]]
+        #             result[i] = p.apply_async(fold_utils.vienna_fold,
+        #                                       args=(self.fold_sequences[i],
+        #                                             ligand['fold_constraint'],
+        #                                             True))
+        #         else:
+        #             result[i] = p.apply_async(fold_utils.vienna_fold,
+        #                                       args=(self.fold_sequences[i],
+        #                                             None, True))
+        #     if self.mode == 'nupack':
+        #         if 'inputs' in target:
+        #             concentrations = [target['inputs'][input]*oligo_conc for input in sorted(target['inputs'])]
+        #         else:
+        #             concentrations = 1
+        #         result[i] = p.apply_async(fold_utils.nupack_fold,
+        #                                   args=(self.fold_sequences[i],
+        #                                         concentrations, True))
+        # p.close()
+        # p.join()
+        # result = [x.get() for x in result]
+
         result = [None] * self.n_targets
-        p = multiprocessing.Pool(self.n_targets)
         for i, target in enumerate(self.design.targets):
             if self.mode == 'vienna':
                 if target['type'] == 'aptamer':
                     ligand = self.design.inputs[list(target['inputs'].keys())[0]]
-                    result[i] = p.apply_async(fold_utils.vienna_fold,
-                                              args=(self.fold_sequences[i],
-                                                    ligand['fold_constraint'],
-                                                    True))
+                    result[i] = fold_utils.vienna_fold(self.fold_sequences[i], ligand['fold_constraint'], True)
                 else:
-                    result[i] = p.apply_async(fold_utils.vienna_fold,
-                                              args=(self.fold_sequences[i],
-                                                    None, True))
+                    result[i] = fold_utils.vienna_fold(self.fold_sequences[i], None, True)
             if self.mode == 'nupack':
                 if 'inputs' in target:
                     concentrations = [target['inputs'][input]*oligo_conc for input in sorted(target['inputs'])]
                 else:
                     concentrations = 1
-                result[i] = p.apply_async(fold_utils.nupack_fold,
-                                          args=(self.fold_sequences[i],
-                                                concentrations, True))
-        p.close()
-        p.join()
-        result = [x.get() for x in result]
+                result[i] = fold_utils.nupack_fold(self.fold_sequences[i], concentrations, True)
+
         self.native = [[x[0], x[2]] if len(x) == 4 else x[0] for x in result]
         self.energies = [x[1] for x in result]
         self.bpps = [x[-1] for x in result]
